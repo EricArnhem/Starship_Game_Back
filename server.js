@@ -36,7 +36,7 @@ const testDbConnection = async function () {
 testDbConnection();
 
 // Synchronizes all the models at once
-db.sequelize.sync()
+db.sequelize.sync({ alter: true })
   .then(() => {
     console.log("All models were synchronized successfully.");
   })
