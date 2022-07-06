@@ -6,7 +6,7 @@ const Op = db.Sequelize.Op;
 exports.create = (req, res) => {
 
   // Validating request
-  if (!req.body.title) { // If there's no title provided (false)
+  if (!req.body.name) { // If there's no name provided (false)
     // Sends an error
     res.status(400).send({
       message: "Content can not be empty!"
