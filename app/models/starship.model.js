@@ -8,11 +8,22 @@ module.exports = (sequelize, DataTypes) => {
     name: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true
+      unique: true,
+      validate: {
+        is: /^[^-\s][\p{L}0-9- ]{1,20}$/gu,
+        len: [1,20],
+        notNull: true,
+        notEmpty: true
+      }
     },
     fuelLeft: {
       type: DataTypes.INTEGER,
-      allowNull: false
+      allowNull: false,
+      validate: {
+        isInt: true,
+        notNull: true,
+        notEmpty: true
+      }
     }
   });
   return Starship;
