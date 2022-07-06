@@ -36,7 +36,7 @@ const testDbConnection = async function () {
 testDbConnection();
 
 // Synchronizes all the models at once
-db.sequelize.sync({ alter: true })
+db.sequelize.sync()
   .then(() => {
     console.log("All models were synchronized successfully.");
   })
@@ -49,6 +49,10 @@ db.sequelize.sync({ alter: true })
 app.get("/", (req, res) => {
   res.json({ message: "The application is working." });
 });
+
+// Importing Express routes
+require("./app/routes/starship.routes")(app);
+require("./app/routes/starship_class.routes")(app);
 
 // Set port, listen for requests
 const PORT = process.env.PORT || 3000;
