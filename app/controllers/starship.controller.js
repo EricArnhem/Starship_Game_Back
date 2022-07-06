@@ -6,7 +6,7 @@ const Op = db.Sequelize.Op;
 exports.create = (req, res) => {
 
   // Validating request
-  if (!req.body.name) { // If there's no name provided (false)
+  if (!req.body.name || !req.body.starshipClassId) { // If there's no name or classId provided
     // Sends an error
     res.status(400).send({
       message: "Content can not be empty!"
@@ -14,22 +14,50 @@ exports.create = (req, res) => {
     return;
   }
 
-  // Creating a new Starship with the data provided
-  const starship = {
-    name: req.body.name,
-    fuelLeft: 0, // Need to change the value to the fuel capacity of the selected class
-    starshipClassId: req.body.starshipClassId
-  };
+  // Function to get the value of the Fuel left which is the Fuel Capacity of the Starship's class
+  async function getInitialFuelLeft(starshipClassId) {
 
-  // Saving the Starship in the database
-  Starship.create(starship)
-    .then(data => {
-      res.send(data);
+    // Retrieving data of the selected class
+    const rawStarshipClassData = await db.starshipClass.findByPk(starshipClassId);
+
+    // Transforming the data into a JSON object with only the class data
+    const starshipClassData = JSON.parse(JSON.stringify(rawStarshipClassData, null, 2));
+
+    // Saving the Fuel Capacity value of the selected class as the Fuel left for the Starship being created
+    let initialFuelLeft = starshipClassData['fuelCapacity'];
+
+    return initialFuelLeft;
+    
+  }
+
+  // Getting the value for the Fuel Left
+  getInitialFuelLeft(req.body.starshipClassId)
+    .then(initialFuelLeft => {
+
+      // Creating a new Starship with the data provided
+      const starship = {
+        name: req.body.name,
+        fuelLeft: initialFuelLeft,
+        starshipClassId: req.body.starshipClassId
+      };
+
+      // Saving the Starship in the database
+      Starship.create(starship)
+        .then(data => {
+          res.send(data);
+        })
+        .catch(err => {
+          res.status(500).send({
+            message:
+              err.message || "Some error occurred while creating the Starship."
+          });
+        });
+
     })
     .catch(err => {
       res.status(500).send({
         message:
-          err.message || "Some error occurred while creating the Starship."
+          err.message || "Some error occurred while getting the Fuel Capacity value from the Starship Class."
       });
     });
 
