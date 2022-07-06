@@ -29,7 +29,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       references: {
         // This is a reference to another model
-        model: starship_class,
+        model: sequelize.models.starship_class,
         // This is the column name of the referenced model
         key: 'id',
       }
