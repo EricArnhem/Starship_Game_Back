@@ -5,6 +5,34 @@ const Op = db.Sequelize.Op;
 // Create a new Starship
 exports.create = (req, res) => {
 
+  // Validating request
+  if (!req.body.title) { // If there's no title provided (false)
+    // Sends an error
+    res.status(400).send({
+      message: "Content can not be empty!"
+    });
+    return;
+  }
+
+  // Creating a new Starship with the data provided
+  const starship = {
+    name: req.body.name,
+    fuelLeft: 0, // Need to change the value to the fuel capacity of the selected class
+    starshipClassId: req.body.starshipClassId
+  };
+
+  // Saving the Starship in the database
+  Starship.create(starship)
+    .then(data => {
+      res.send(data);
+    })
+    .catch(err => {
+      res.status(500).send({
+        message:
+          err.message || "Some error occurred while creating the Starship."
+      });
+    });
+
 };
 
 // Find a single Starship by id
