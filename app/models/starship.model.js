@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
       unique: true,
       validate: {
         is: /^[^-\s][\p{L}0-9- ]{1,20}$/gu,
-        len: [1,20],
+        len: [1, 20],
         notNull: true,
         notEmpty: true
       }
@@ -23,6 +23,15 @@ module.exports = (sequelize, DataTypes) => {
         isInt: true,
         notNull: true,
         notEmpty: true
+      }
+    },
+    starshipClassId: {
+      type: DataTypes.INTEGER,
+      references: {
+        // This is a reference to another model
+        model: starship_class,
+        // This is the column name of the referenced model
+        key: 'id',
       }
     }
   });
