@@ -91,6 +91,25 @@ exports.findOneById = (req, res) => {
 // Find a single Starship by name
 exports.findOneByName = (req, res) => {
 
+  // Getting starship name from the URL
+  const name = req.params.name;
+
+  Starship.findOne({ where: { name: name } })
+    .then(data => {
+      if (data) {
+        res.send(data);
+      } else {
+        res.status(404).send({
+          message: `Cannot find Starship with name=${name}.`
+        });
+      }
+    })
+    .catch(err => {
+      res.status(500).send({
+        message: "Error retrieving Starship with name=" + name
+      });
+    });
+
 };
 
 // Find all Starships
