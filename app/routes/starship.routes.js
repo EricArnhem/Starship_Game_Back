@@ -21,6 +21,9 @@ module.exports = app => {
   // Update a single Starship by id
   router.put("/:id", starship.updateById);
 
+  // Delete a single Starship by id
+  router.delete("/:id", starship.deleteById);
+
   app.use('/api/starship', router);
 
 };
