@@ -4,6 +4,23 @@ const Starship = db.starship;
 const StarshipClass = db.starshipClass;
 const Op = db.Sequelize.Op;
 
+// Function to get the Fuel Capacity of the Starship Class
+async function getClassFuelCapacity(starshipClassId) {
+
+  // Retrieving data of the selected class
+  const rawStarshipClassData = await StarshipClass.findByPk(starshipClassId);
+
+  // Transforming the data into a JSON object with only the class data
+  const starshipClassData = JSON.parse(JSON.stringify(rawStarshipClassData, null, 2));
+
+  // Saving the Fuel Capacity value of the selected class as the Fuel left for the Starship being created
+  let classFuelCapacity = starshipClassData['fuelCapacity'];
+
+  return classFuelCapacity;
+
+}
+
+// --- CRUD Functions ---
 // Create a new Starship
 exports.create = (req, res) => {
 
@@ -16,30 +33,14 @@ exports.create = (req, res) => {
     return;
   }
 
-  // Function to get the value of the Fuel left which is the Fuel Capacity of the Starship's class
-  async function getInitialFuelLeft(starshipClassId) {
-
-    // Retrieving data of the selected class
-    const rawStarshipClassData = await StarshipClass.findByPk(starshipClassId);
-
-    // Transforming the data into a JSON object with only the class data
-    const starshipClassData = JSON.parse(JSON.stringify(rawStarshipClassData, null, 2));
-
-    // Saving the Fuel Capacity value of the selected class as the Fuel left for the Starship being created
-    let initialFuelLeft = starshipClassData['fuelCapacity'];
-
-    return initialFuelLeft;
-
-  }
-
   // Getting the value for the Fuel Left
-  getInitialFuelLeft(req.body.starshipClassId)
-    .then(initialFuelLeft => {
+  getClassFuelCapacity(req.body.starshipClassId)
+    .then(classFuelCapacity => {
 
       // Creating a new Starship with the data provided
       const starship = {
         name: req.body.name,
-        fuelLeft: initialFuelLeft,
+        fuelLeft: classFuelCapacity,
         starshipClassId: req.body.starshipClassId
       };
 
@@ -187,7 +188,7 @@ exports.deleteById = (req, res) => {
 
   // Getting starship id from the URL
   const id = req.params.id;
-  
+
   Starship.destroy({
     where: { id: id }
   })
