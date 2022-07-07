@@ -131,6 +131,26 @@ exports.findAll = (req, res) => {
 // Find all Starships of a class
 exports.findAllOfClass = (req, res) => {
 
+  // Getting the starship class id from the URL
+  const classId = req.params.id;
+
+  Starship.findAll({ where: { starshipClassId: classId }  })
+    .then(data => {
+      if (data) {
+        res.send(data);
+      } else {
+        res.status(404).send({
+          message: `No Starships found for the class with id=${classId}.`
+        });
+      }
+    })
+    .catch(err => {
+      res.status(500).send({
+        message:
+          err.message || "Some error occurred while retrieving the Starships."
+      });
+    });
+
 };
 
 // Update a single Starship by id

@@ -15,6 +15,9 @@ module.exports = app => {
   // Find all Starships
   router.get("/", starship.findAll);
 
+  // Find all Starships by class
+  router.get("/class/:id", starship.findAllOfClass);
+
   app.use('/api/starship', router);
 
 };
