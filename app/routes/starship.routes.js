@@ -8,7 +8,7 @@ module.exports = app => {
 
   // Find a single Starship by id
   router.get("/:id", starship.findOneById);
-  
+
   // Find a single Starship by name
   router.get("/name/:name", starship.findOneByName);
 
@@ -17,6 +17,9 @@ module.exports = app => {
 
   // Find all Starships by class
   router.get("/class/:id", starship.findAllOfClass);
+
+  // Update a single Starship by id
+  router.put("/:id", starship.updateById);
 
   app.use('/api/starship', router);
 

@@ -1,3 +1,4 @@
+const { sequelize } = require("../models");
 const db = require("../models");
 const Starship = db.starship;
 const StarshipClass = db.starshipClass;
@@ -134,7 +135,7 @@ exports.findAllOfClass = (req, res) => {
   // Getting the starship class id from the URL
   const classId = req.params.id;
 
-  Starship.findAll({ where: { starshipClassId: classId }  })
+  Starship.findAll({ where: { starshipClassId: classId } })
     .then(data => {
       if (data) {
         res.send(data);
@@ -155,6 +156,29 @@ exports.findAllOfClass = (req, res) => {
 
 // Update a single Starship by id
 exports.updateById = (req, res) => {
+
+  // Getting starship id from the URL
+  const id = req.params.id;
+
+  Starship.update(req.body, {
+    where: { id: id }
+  })
+    .then(updatedRows => { // updatedRows is the number of rows that have been updated.
+      if (updatedRows == 1) { // If updatedRows = 1. One row has been updated -> success
+        res.send({
+          message: "The Starship was updated successfully."
+        });
+      } else {
+        res.send({
+          message: `Cannot update the Starship with id=${id}. Maybe the Starship was not found or req.body is empty!`
+        });
+      }
+    })
+    .catch(err => {
+      res.status(500).send({
+        message: "Error updating the Starship with id=" + id
+      });
+    });
 
 };
 
