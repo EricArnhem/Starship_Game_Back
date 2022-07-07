@@ -1,5 +1,6 @@
 const db = require("../models");
 const Starship = db.starship;
+const StarshipClass = db.starshipClass;
 const Op = db.Sequelize.Op;
 
 // Create a new Starship
@@ -18,7 +19,7 @@ exports.create = (req, res) => {
   async function getInitialFuelLeft(starshipClassId) {
 
     // Retrieving data of the selected class
-    const rawStarshipClassData = await db.starshipClass.findByPk(starshipClassId);
+    const rawStarshipClassData = await StarshipClass.findByPk(starshipClassId);
 
     // Transforming the data into a JSON object with only the class data
     const starshipClassData = JSON.parse(JSON.stringify(rawStarshipClassData, null, 2));
@@ -27,7 +28,7 @@ exports.create = (req, res) => {
     let initialFuelLeft = starshipClassData['fuelCapacity'];
 
     return initialFuelLeft;
-    
+
   }
 
   // Getting the value for the Fuel Left
