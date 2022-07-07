@@ -6,6 +6,9 @@ module.exports = app => {
   // Create a new Starship
   router.post("/", starship.create);
 
+  // Find a single Starship by id
+  router.get("/:id", starship.findOneById);
+
   app.use('/api/starship', router);
 
 };
