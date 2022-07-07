@@ -12,6 +12,9 @@ module.exports = app => {
   // Find a single Starship by name
   router.get("/name/:name", starship.findOneByName);
 
+  // Find all Starships
+  router.get("/", starship.findAll);
+
   app.use('/api/starship', router);
 
 };

@@ -115,6 +115,17 @@ exports.findOneByName = (req, res) => {
 // Find all Starships
 exports.findAll = (req, res) => {
 
+  Starship.findAll()
+    .then(data => {
+      res.send(data);
+    })
+    .catch(err => {
+      res.status(500).send({
+        message:
+          err.message || "Some error occurred while retrieving the Starships."
+      });
+    });
+
 };
 
 // Find all Starships of a class
