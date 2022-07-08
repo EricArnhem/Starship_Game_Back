@@ -9,6 +9,9 @@ module.exports = app => {
   // Retrieve a single Starship class by id
   router.get("/:id", starship_class.findOneById);
 
+  // Retrieve the fuel capacity of a Starship class by id
+  router.get("/:id/fuel-capacity", starship_class.getFuelCapacityById);
+
   app.use('/api/starship-class', router);
 
 };
