@@ -1,7 +1,12 @@
-const { sequelize } = require("../models");
+const fetch = require('node-fetch');
+
+const appConfig = require("../config/app.config.js");
+
 const db = require("../models");
+
 const Starship = db.starship;
 const StarshipClass = db.starshipClass;
+
 const Op = db.Sequelize.Op;
 
 // Function to get the Fuel Capacity of the Starship Class
@@ -158,28 +163,108 @@ exports.findAllOfClass = (req, res) => {
 // Update a single Starship by id
 exports.updateById = (req, res) => {
 
-  // Getting starship id from the URL
-  const id = req.params.id;
+  // Declaring and calling an async function to be able to use the await keyword
+  (async () => {
 
-  Starship.update(req.body, {
-    where: { id: id }
-  })
-    .then(updatedRows => { // updatedRows is the number of rows that have been updated.
-      if (updatedRows == 1) { // If updatedRows = 1. One row has been updated -> success
-        res.send({
-          message: "The Starship was updated successfully."
-        });
-      } else {
-        res.send({
-          message: `Cannot update the Starship with id=${id}. Maybe the Starship was not found or req.body is empty!`
-        });
+    // Getting starship id from the URL
+    const id = req.params.id;
+
+    // Getting data of the starship we try to update
+    const starshipData = await Starship.findByPk(id);
+
+    // Function used to check the presence of the 'fuelLeft' and 'starshipClassId' properties and change the fuel left value based on it
+    const valuesCheck = async () => {
+
+      // -- If we are trying to change the Fuel left --
+      if (req.body.fuelLeft) {
+
+        // Getting the current starship class id
+        let currentStarshipClassId = starshipData.starshipClassId;
+
+        // Getting the Fuel capacity of the current starship class using the API
+        await fetch(`${appConfig.DOMAIN}/api/starship-class/${currentStarshipClassId}/fuel-capacity`, { method: 'GET' })
+          .then(response => response.json())
+          .catch(err => {
+            throw new Error("Cannot get the fuel capacity of the current starship class.");
+          })
+          .then((jsonResponse) => {
+
+            const currentClassFuelCapacity = jsonResponse[0].fuelCapacity;
+
+            // If the value of the Fuel left is below 0 or above the maximum capacity
+            if (req.body.fuelLeft < 0 || req.body.fuelLeft > currentClassFuelCapacity) {
+              throw new Error(`'Fuel left' value must be between 0 and ${currentClassFuelCapacity}.`);
+            }
+
+          })
+          .catch(err => {
+            throw new Error(err);
+          })
+
       }
-    })
-    .catch(err => {
-      res.status(500).send({
-        message: "Error updating the Starship with id=" + id
+
+      // -- If we are trying to change the starship class AND if it's not the same currently used class --
+      if (req.body.starshipClassId && (req.body.starshipClassId != starshipData.starshipClassId)) {
+
+        // Checking if the desired class exists using the API
+        await fetch(`${appConfig.DOMAIN}/api/starship-class/${req.body.starshipClassId}/`, { method: 'GET' })
+          .then(response => {
+            if (response.status == 404) {
+              throw new Error("The specified starship class does not exists.");
+            }
+          });
+
+        // Getting the Fuel capacity of the new starship class using the API
+        await fetch(`${appConfig.DOMAIN}/api/starship-class/${req.body.starshipClassId}/fuel-capacity`, { method: 'GET' })
+          .then(response => response.json())
+          .then((jsonResponse) => {
+
+            const newClassFuelCapacity = jsonResponse[0].fuelCapacity;
+
+            // Set the value of the fuelLeft property to the fuel capacity of the new class 
+            req.body.fuelLeft = newClassFuelCapacity;
+
+          })
+          .catch(err => {
+            throw new Error("Cannot get the fuel capacity of the new starship class.");
+          })
+
+      }
+    }
+
+    // Checking the presence of the fuelLeft or starshipClassId properties
+    await valuesCheck()
+      .then(() => {
+
+        // Then we update the starship
+        Starship.update(req.body, {
+          where: { id: id }
+        })
+          .then(updatedRows => { // updatedRows is the number of rows that have been updated.
+            if (updatedRows == 1) { // If updatedRows = 1. One row has been updated -> success
+              res.send({
+                message: "The Starship was updated successfully."
+              });
+            } else {
+              res.send({
+                message: `Cannot update the Starship with id=${id}. Maybe the Starship was not found or req.body is empty!`
+              });
+            }
+          })
+          .catch(err => {
+            res.status(500).send({
+              message: "Error updating the Starship with id=" + id
+            });
+          });
+
+      })
+      .catch(err => {
+        res.status(500).send({
+          message: err.message
+        });
       });
-    });
+
+  })();
 
 };
 
