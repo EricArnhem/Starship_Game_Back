@@ -5,29 +5,12 @@ const appConfig = require("../config/app.config.js");
 const db = require("../models");
 
 const Starship = db.starship;
-const StarshipClass = db.starshipClass;
 
 const Op = db.Sequelize.Op;
 
-// Function to get the Fuel Capacity of the Starship Class
-async function getClassFuelCapacity(starshipClassId) {
-
-  // Retrieving data of the selected class
-  const rawStarshipClassData = await StarshipClass.findByPk(starshipClassId);
-
-  // Transforming the data into a JSON object with only the class data
-  const starshipClassData = JSON.parse(JSON.stringify(rawStarshipClassData, null, 2));
-
-  // Saving the Fuel Capacity value of the selected class as the Fuel left for the Starship being created
-  let classFuelCapacity = starshipClassData['fuelCapacity'];
-
-  return classFuelCapacity;
-
-}
-
 // --- CRUD Functions ---
 // Create a new Starship
-exports.create = (req, res) => {
+exports.create = async (req, res) => {
 
   // Validating request
   if (!req.body.name || !req.body.starshipClassId) { // If there's no name or classId provided
@@ -38,9 +21,21 @@ exports.create = (req, res) => {
     return;
   }
 
-  // Getting the value for the Fuel Left
-  getClassFuelCapacity(req.body.starshipClassId)
-    .then(classFuelCapacity => {
+  // Getting the Fuel capacity of the current starship class using the API to use it as a value for the Fuel left
+  await fetch(`${appConfig.DOMAIN}/api/starship-class/${req.body.starshipClassId}/fuel-capacity`, { method: 'GET' })
+    .then(response => {
+      // If response is OK
+      if (response.status == 200) {
+        // Returns the response in JSON
+        return response.json()
+      } else {
+        throw new Error(`Error while trying to retrieve the Fuel capacity of the class with id=${req.body.starshipClassId}, the Starship class does not exists.`);
+      }
+    })
+    .then(jsonResponse => {
+
+      // Saving the fuel capacity of the starship class
+      const classFuelCapacity = jsonResponse[0].fuelCapacity;
 
       // Creating a new Starship with the data provided
       const starship = {
