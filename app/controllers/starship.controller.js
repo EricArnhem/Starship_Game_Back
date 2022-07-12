@@ -169,10 +169,9 @@ exports.updateById = async (req, res) => {
   // Getting data of the starship we try to update
   const starshipData = await Starship.findByPk(id);
 
-  // Function used to check the presence of the 'fuelLeft' and 'starshipClassId' properties and change the fuel left value based on it
-  const valuesCheck = async () => {
-
-    // -- If we are trying to change the Fuel left --
+  // -- Function used to check if we are trying to update the "Fuel left" value and if that value is valid --
+  const fuelLeftCheck = async () => {
+    // If the "fuelLeft" property is detected in the request body
     if (req.body.fuelLeft) {
 
       // Getting the current starship class id
@@ -180,12 +179,18 @@ exports.updateById = async (req, res) => {
 
       // Getting the Fuel capacity of the current starship class using the API
       await fetch(`${appConfig.DOMAIN}/api/starship-class/${currentStarshipClassId}/fuel-capacity`, { method: 'GET' })
-        .then(response => response.json())
-        .catch(err => {
-          throw new Error("Cannot get the fuel capacity of the current starship class.");
+        .then(response => {
+          // If response is OK
+          if (response.status == 200) {
+            // Returns the response in JSON
+            return response.json()
+          } else {
+            throw new Error(`Error while trying to retrieve the Fuel capacity of the class with id=${id}, the Starship class does not exists.`);
+          }
         })
-        .then((jsonResponse) => {
+        .then(jsonResponse => {
 
+          // Saving the fuel capacity of the starship class
           const currentClassFuelCapacity = jsonResponse[0].fuelCapacity;
 
           // If the value of the Fuel left is below 0 or above the maximum capacity
@@ -194,26 +199,34 @@ exports.updateById = async (req, res) => {
           }
 
         })
-        .catch(err => {
-          throw new Error(err);
-        })
 
     }
+  }
 
-    // -- If we are trying to change the starship class AND if it's not the same currently used class --
+  // -- Function used to check if we are trying to update the "Starship class ID" and check if the new class is exists --
+  const starshipClassIdCheck = async () => {
+
+    // If the "starshipClassId" property is detected in the request body AND if it is not the same currently used class
     if (req.body.starshipClassId && (req.body.starshipClassId != starshipData.starshipClassId)) {
 
-      // Checking if the desired class exists using the API
-      await fetch(`${appConfig.DOMAIN}/api/starship-class/${req.body.starshipClassId}/`, { method: 'GET' })
-        .then(response => {
-          if (response.status == 404) {
-            throw new Error("The specified starship class does not exists.");
-          }
-        });
+      // Checking if the desired class exists
+      const classCount = await db.starshipClass.count({ where: { id: req.body.starshipClassId } });
+
+      if (classCount == 0) {
+        throw new Error("The specified starship class does not exists.");
+      }
 
       // Getting the Fuel capacity of the new starship class using the API
       await fetch(`${appConfig.DOMAIN}/api/starship-class/${req.body.starshipClassId}/fuel-capacity`, { method: 'GET' })
-        .then(response => response.json())
+        .then(response => {
+          // If response is OK
+          if (response.status == 200) {
+            // Returns the response in JSON
+            return response.json()
+          } else {
+            throw new Error(`Error while trying to retrieve the Fuel capacity of the class with id=${id}, the Starship class does not exists.`);
+          }
+        })
         .then((jsonResponse) => {
 
           const newClassFuelCapacity = jsonResponse[0].fuelCapacity;
@@ -222,15 +235,17 @@ exports.updateById = async (req, res) => {
           req.body.fuelLeft = newClassFuelCapacity;
 
         })
-        .catch(err => {
-          throw new Error("Cannot get the fuel capacity of the new starship class.");
-        })
 
     }
   }
 
-  // Checking the presence of the fuelLeft or starshipClassId properties
-  await valuesCheck()
+  const propertiesCheck = async () => {
+    await fuelLeftCheck(); // Checking for the "fuelLeft" property
+    await starshipClassIdCheck(); // Checking for the "starshipClassId" property
+  }
+
+  // Checking for the presence of some properties in the request body
+  await propertiesCheck()
     .then(() => {
 
       // Then we update the starship
