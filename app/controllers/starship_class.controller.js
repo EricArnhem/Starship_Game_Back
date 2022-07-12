@@ -81,7 +81,8 @@ exports.getFuelCapacityById = (req, res) => {
     where: { id: id } 
   })
     .then(data => {
-      if (data) {
+      // If it returned some data
+      if (data.length > 0) {
         res.send(data);
       } else {
         res.status(404).send({
