@@ -41,7 +41,7 @@ exports.findOneById = (req, res) => {
 
   const id = req.params.id;
 
-  StarshipClass.findByPk(id)
+  StarshipClass.findByPk(id, { attributes: { exclude: ['createdAt', 'updatedAt'] } })
     .then(data => {
       if (data) {
         res.send(data);
@@ -78,7 +78,7 @@ exports.getFuelCapacityById = (req, res) => {
   // Find the starship with the provided id and select it's fuel capacity
   StarshipClass.findAll({
     attributes: ['fuelCapacity'],
-    where: { id: id } 
+    where: { id: id }
   })
     .then(data => {
       // If it returned some data

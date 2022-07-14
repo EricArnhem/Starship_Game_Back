@@ -72,7 +72,7 @@ exports.findOneById = (req, res) => {
   // Getting starship id from the URL
   const id = req.params.id;
 
-  Starship.findByPk(id)
+  Starship.findByPk(id, { attributes: { exclude: ['createdAt', 'updatedAt'] } })
     .then(data => {
       if (data) {
         res.send(data);
@@ -96,7 +96,10 @@ exports.findOneByName = (req, res) => {
   // Getting starship name from the URL
   const name = req.params.name;
 
-  Starship.findOne({ where: { name: name } })
+  Starship.findOne({
+    attributes: { exclude: ['createdAt', 'updatedAt'] },
+    where: { name: name }
+  })
     .then(data => {
       if (data) {
         res.send(data);
@@ -117,7 +120,9 @@ exports.findOneByName = (req, res) => {
 // Find all Starships
 exports.findAll = (req, res) => {
 
-  Starship.findAll()
+  Starship.findAll({
+    attributes: { exclude: ['createdAt', 'updatedAt'] }
+  })
     .then(data => {
       res.send(data);
     })
@@ -136,7 +141,10 @@ exports.findAllOfClass = (req, res) => {
   // Getting the starship class id from the URL
   const classId = req.params.id;
 
-  Starship.findAll({ where: { starshipClassId: classId } })
+  Starship.findAll({
+    attributes: { exclude: ['createdAt', 'updatedAt'] },
+    where: { starshipClassId: classId }
+  })
     .then(data => {
       if (data) {
         res.send(data);
