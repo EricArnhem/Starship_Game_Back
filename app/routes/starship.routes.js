@@ -21,6 +21,9 @@ module.exports = app => {
   // Update a single Starship by id
   router.put("/:id", starship.updateById);
 
+  // Update the Fuel left of a Starship by id
+  router.put("/:id/fuel-left", starship.updateFuelLeftById);
+
   // Delete a single Starship by id
   router.delete("/:id", starship.deleteById);
 
