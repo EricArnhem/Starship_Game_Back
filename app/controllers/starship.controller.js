@@ -163,8 +163,17 @@ exports.findAllOfClass = (req, res) => {
 
 };
 
-// Update a single Starship by id
+// Update a single Starship by id (except "fuelLeft" property -> Use updateFuelLeftById() to change it)
 exports.updateById = async (req, res) => {
+
+  // If the "fuelLeft" property is in the request body
+  if (req.body.fuelLeft) {
+    // Sends an error
+    res.status(400).send({
+      message: "Cannot update the 'fuelLeft' using this route. Use /api/starship/:id/fuel-left to update it."
+    });
+    return;
+  }
 
   // Getting starship id from the URL
   const id = req.params.id;
@@ -172,41 +181,8 @@ exports.updateById = async (req, res) => {
   // Getting data of the starship we try to update
   const starshipData = await Starship.findByPk(id);
 
-  // -- Function used to check if we are trying to update the "Fuel left" value and if that value is valid --
-  const fuelLeftCheck = async () => {
-    // If the "fuelLeft" property is detected in the request body
-    if (req.body.fuelLeft) {
 
-      // Getting the current starship class id
-      let currentStarshipClassId = starshipData.starshipClassId;
-
-      // Getting the Fuel capacity of the current starship class using the API
-      await fetch(`${appConfig.DOMAIN}/api/starship-class/${currentStarshipClassId}/fuel-capacity`, { method: 'GET' })
-        .then(response => {
-          // If response is OK
-          if (response.status == 200) {
-            // Returns the response in JSON
-            return response.json()
-          } else {
-            throw new Error(`Error while trying to retrieve the Fuel capacity of the class with id=${currentStarshipClassId}, the Starship class does not exists.`);
-          }
-        })
-        .then(jsonResponse => {
-
-          // Saving the fuel capacity of the starship class
-          const currentClassFuelCapacity = jsonResponse[0].fuelCapacity;
-
-          // If the value of the Fuel left is below 0 or above the maximum capacity
-          if (req.body.fuelLeft < 0 || req.body.fuelLeft > currentClassFuelCapacity) {
-            throw new Error(`'Fuel left' value must be between 0 and ${currentClassFuelCapacity}.`);
-          }
-
-        })
-
-    }
-  }
-
-  // -- Function used to check if we are trying to update the "Starship class ID" and check if the new class is exists --
+  // Function used to check if we are trying to update the "Starship class ID" and check if the new desired class exists
   const starshipClassIdCheck = async () => {
 
     // If the "starshipClassId" property is detected in the request body AND if it is not the same currently used class
@@ -242,13 +218,9 @@ exports.updateById = async (req, res) => {
     }
   }
 
-  const propertiesCheck = async () => {
-    await fuelLeftCheck(); // Checking for the "fuelLeft" property
-    await starshipClassIdCheck(); // Checking for the "starshipClassId" property
-  }
 
-  // Checking for the presence of some properties in the request body
-  await propertiesCheck()
+  // Checking for the presence of the "starshipClassId" property in the request body
+  await starshipClassIdCheck()
     .then(() => {
 
       // Then we update the starship
@@ -286,7 +258,7 @@ exports.updateFuelLeftById = async (req, res) => {
 
   // Validating request
   // If there's no "fuelLeft" property or if there's not just one property in the request body
-  if (!req.body.fuelLeft || Object.keys(req.body).length != 1) { 
+  if (!req.body.fuelLeft || Object.keys(req.body).length != 1) {
     // Sends an error
     res.status(400).send({
       message: "Please provide the 'fuelLeft' property only."
