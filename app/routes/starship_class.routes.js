@@ -18,6 +18,9 @@ module.exports = app => {
   // Find all Starship classes
   router.get("/", starship_class.findAll);
 
+  // Delete a single Starship class by id
+  router.delete("/:id", starship_class.deleteById);
+
   app.use('/api/starship-class', router);
 
 };

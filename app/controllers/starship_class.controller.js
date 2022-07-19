@@ -142,4 +142,27 @@ exports.updateById = (req, res) => {
 // Delete a single Starship Class by id
 exports.deleteById = (req, res) => {
 
+  // Getting starship id class from the URL
+  const id = req.params.id;
+
+  StarshipClass.destroy({
+    where: { id: id }
+  })
+    .then(updatedRows => { // updatedRows is the number of rows that have been updated.
+      if (updatedRows == 1) { // If updatedRows = 1. One row has been updated -> success
+        res.send({
+          message: `The Starship class with id=${id} was deleted successfully!`
+        });
+      } else {
+        res.send({
+          message: `Cannot delete Starship class with id=${id}. The Starship class may not exist.`
+        });
+      }
+    })
+    .catch(err => {
+      res.status(500).send({
+        message: "Could not delete the Starship class with id=" + id
+      });
+    });
+
 };
