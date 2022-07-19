@@ -89,6 +89,19 @@ exports.findOneByName = (req, res) => {
 // Find all Starships Classes
 exports.findAll = (req, res) => {
 
+  StarshipClass.findAll({
+    attributes: { exclude: ['createdAt', 'updatedAt'] }
+  })
+    .then(data => {
+      res.send(data);
+    })
+    .catch(err => {
+      res.status(500).send({
+        message:
+          err.message || "Some error occurred while retrieving the Starship classes."
+      });
+    });
+
 };
 
 // Get the fuel capacity by providing the class id
