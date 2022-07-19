@@ -62,6 +62,28 @@ exports.findOneById = (req, res) => {
 // Find a single Starship Class by name
 exports.findOneByName = (req, res) => {
 
+  // Getting starship class name from the URL
+  const name = req.params.name;
+
+  StarshipClass.findOne({
+    attributes: { exclude: ['createdAt', 'updatedAt'] },
+    where: { name: name }
+  })
+    .then(data => {
+      if (data) {
+        res.send(data);
+      } else {
+        res.status(404).send({
+          message: `Cannot find Starship class with name=${name}.`
+        });
+      }
+    })
+    .catch(err => {
+      res.status(500).send({
+        message: "Error retrieving Starship class with name=" + name
+      });
+    });
+
 };
 
 // Find all Starships Classes
