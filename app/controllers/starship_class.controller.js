@@ -30,7 +30,7 @@ exports.create = (req, res) => {
     .catch(err => {
       res.status(500).send({
         message:
-          err.message || "Some error occurred while creating the Starship Class."
+          err.message || "Some error occurred while creating the Starship class."
       });
     });
 
@@ -47,13 +47,13 @@ exports.findOneById = (req, res) => {
         res.send(data);
       } else {
         res.status(404).send({
-          message: `Cannot find a Starship Class with id=${id}.`
+          message: `Cannot find a Starship class with id=${id}.`
         });
       }
     })
     .catch(err => {
       res.status(500).send({
-        message: "Error retrieving a Starship Class with id=" + id
+        message: "Error retrieving a Starship class with id=" + id
       });
     });
 
