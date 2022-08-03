@@ -1,3 +1,6 @@
+// Loading environment variables from .env file
+require('dotenv').config()
+
 // Importing Express and Cors
 const express = require("express");
 const cors = require("cors");
