@@ -135,7 +135,132 @@ exports.getFuelCapacityById = (req, res) => {
 };
 
 // Update a single Starship Class by id
-exports.updateById = (req, res) => {
+exports.updateById = async (req, res) => {
+
+  // Getting the starship class id from the URL
+  const id = req.params.id;
+
+  // Function to check the request validity (req.body not empty, properties count and names)
+  const requestValidityCheck = async () => {
+
+    // Properties accepted for this request
+    const validProperties = [
+      'name',
+      'speed',
+      'fuelCapacity',
+      'color'
+    ];
+
+    // Validating request
+    if (Object.keys(req.body).length == 0) {
+
+      // Sends an error if the body is empty
+      res.status(400);
+      throw new Error("Request body cannot be empty.");
+
+    } else if (Object.keys(req.body).length > validProperties.length) {
+
+      // Sends error if req.body has more properties than the validProperties array
+      res.status(422);
+      throw new Error(`Request body cannot have more than ${validProperties.length} properties.`);
+
+    } else {
+
+      // Checking if the req.body properties are valid
+      for (const property in req.body) {
+
+        // Sends an error if an invalid property is detected in req.body
+        if (!validProperties.includes(property)) {
+
+          res.status(422);
+          throw new Error(`Invalid property '${property}' in request.`);
+
+        }
+
+      }
+    }
+
+  }
+
+  // Checking the request validity
+  await requestValidityCheck()
+    .then(async () => {
+
+      // We start a transaction and save it into a variable
+      const t = await db.sequelize.transaction();
+
+      // Then updating the starship class
+      StarshipClass.update(req.body,
+        {
+          where: { id: id },
+          transaction: t // Passing transaction as an option
+        })
+        .then(async (updatedRows) => { // updatedRows is the number of rows that have been updated.
+
+          if (updatedRows == 1) { // If updatedRows = 1. One row has been updated -> success
+
+            if (req.body.fuelCapacity) {
+              // If we updated the fuelCapacity
+
+              // We need to update the fuel left of all the starships of the updated class to the new fuel capacity
+              await db.starship.update({ fuelLeft: req.body.fuelCapacity },
+                { 
+                  where: { starshipClassId: id },
+                  transaction: t
+                })
+                .then(async () => {
+                  // If the update was successful
+                  // Commit the transaction (Apply changes)
+                  await t.commit();
+                  res.send({
+                    message: "The Starship class was updated successfully."
+                  });
+
+                })
+                .catch(async (err) => {
+                  // If error during the starships fuel left update
+                  // Rollback the update made to the starship class
+                  await t.rollback();
+                  // Sends the error message
+                  res.send({
+                    message: err.message
+                  });
+                });
+
+            } else {
+              // If we did not update the fuel capacity of the starship class
+              // Commit the transaction (Apply changes)
+              await t.commit();
+              res.send({
+                message: "The Starship class was updated successfully."
+              });
+
+            }
+
+          } else {
+            // If no rows were updated
+            res.status(404).send({
+              message: `Cannot update the Starship class with id=${id}. Maybe the Starship class does not exists.`
+            });
+
+          }
+
+        })
+        .catch(err => {
+          res.status(500).send({
+            message: `Error while updating the Starship class with id=${id}.`
+          });
+        });
+
+    })
+    .catch(err => {
+      // Catches any errors from the request validity function
+      res.send({
+        message: err.message
+      });
+    });
+
+
 
 };
 

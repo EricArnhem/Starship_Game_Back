@@ -18,6 +18,9 @@ module.exports = app => {
   // Find all Starship classes
   router.get("/", starship_class.findAll);
 
+  // Update a single Starship class by id
+  router.put("/:id", starship_class.updateById);
+
   // Delete a single Starship class by id
   router.delete("/:id", starship_class.deleteById);
 
