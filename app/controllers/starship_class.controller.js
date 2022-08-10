@@ -5,36 +5,48 @@ const Op = db.Sequelize.Op;
 const requestValidityCheck = require("./requestValidityCheck");
 
 // Create a new Starship Class
-exports.create = (req, res) => {
+exports.create = async (req, res) => {
 
-  // Validating request
-  if (!req.body.name) { // If there's no name provided (false)
-    // Sends an error
-    res.status(400).send({
-      message: "Content can not be empty!"
-    });
-    return;
-  }
+  // Properties accepted for this request
+  const validProperties = [
+    'name',
+    'speed',
+    'fuelCapacity',
+    'color'
+  ];
 
-  // Creating a new Starship Class with the data provided
-  const starship_class = {
-    name: req.body.name,
-    speed: req.body.speed,
-    fuelCapacity: req.body.fuelCapacity,
-    color: req.body.color
-  };
+  // Checking the request validity
+  await requestValidityCheck(req, res, validProperties)
+    .then(() => {
 
-  // Saving the Starship Class in the database
-  StarshipClass.create(starship_class)
-    .then(data => {
-      res.send(data);
+      // Creating a new Starship Class with the data provided
+      const starship_class = {
+        name: req.body.name,
+        speed: req.body.speed,
+        fuelCapacity: req.body.fuelCapacity,
+        color: req.body.color
+      };
+
+      // Saving the Starship Class in the database
+      StarshipClass.create(starship_class)
+        .then(data => {
+          res.send(data);
+        })
+        .catch(err => {
+          res.status(500).send({
+            message:
+              err.message || "Some error occurred while creating the Starship class."
+          });
+        });
+
     })
     .catch(err => {
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while creating the Starship class."
+      // Catches any errors from the request validity function
+      res.send({
+        message: err.message
       });
     });
+
 
 };
 
