@@ -2,6 +2,8 @@ const db = require("../models");
 const StarshipClass = db.starshipClass;
 const Op = db.Sequelize.Op;
 
+const requestValidityCheck = require("./requestValidityCheck");
+
 // Create a new Starship Class
 exports.create = (req, res) => {
 
@@ -140,50 +142,16 @@ exports.updateById = async (req, res) => {
   // Getting the starship class id from the URL
   const id = req.params.id;
 
-  // Function to check the request validity (req.body not empty, properties count and names)
-  const requestValidityCheck = async () => {
-
-    // Properties accepted for this request
-    const validProperties = [
-      'name',
-      'speed',
-      'fuelCapacity',
-      'color'
-    ];
-
-    // Validating request
-    if (Object.keys(req.body).length == 0) {
-
-      // Sends an error if the body is empty
-      res.status(400);
-      throw new Error("Request body cannot be empty.");
-
-    } else if (Object.keys(req.body).length > validProperties.length) {
-
-      // Sends error if req.body has more properties than the validProperties array
-      res.status(422);
-      throw new Error(`Request body cannot have more than ${validProperties.length} properties.`);
-
-    } else {
-
-      // Checking if the req.body properties are valid
-      for (const property in req.body) {
-
-        // Sends an error if an invalid property is detected in req.body
-        if (!validProperties.includes(property)) {
-
-          res.status(422);
-          throw new Error(`Invalid property '${property}' in request.`);
-
-        }
-
-      }
-    }
-
-  }
+  // Properties accepted for this request
+  const validProperties = [
+    'name',
+    'speed',
+    'fuelCapacity',
+    'color'
+  ];
 
   // Checking the request validity
-  await requestValidityCheck()
+  await requestValidityCheck(req, res, validProperties)
     .then(async () => {
 
       // We start a transaction and save it into a variable
@@ -204,7 +172,7 @@ exports.updateById = async (req, res) => {
 
               // We need to update the fuel left of all the starships of the updated class to the new fuel capacity
               await db.starship.update({ fuelLeft: req.body.fuelCapacity },
-                { 
+                {
                   where: { starshipClassId: id },
                   transaction: t
                 })
