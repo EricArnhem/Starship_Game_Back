@@ -200,36 +200,45 @@ exports.updateById = async (req, res) => {
   // Function used to check if we are trying to update the "Starship class ID" and check if the new desired class exists
   const starshipClassIdCheck = async () => {
 
-    // If the "starshipClassId" property is detected in the request body AND if it is not the same currently used class
-    if (req.body.starshipClassId && (req.body.starshipClassId != starshipData.starshipClassId)) {
+    // If the starship with the provided id exists
+    if (starshipData) {
 
-      // Checking if the desired class exists
-      const classCount = await db.starshipClass.count({ where: { id: req.body.starshipClassId } });
+      // If the "starshipClassId" property is detected in the request body AND if it is not the same currently used class
+      if (req.body.starshipClassId && (req.body.starshipClassId != starshipData.starshipClassId)) {
 
-      if (classCount == 0) {
-        throw new Error("The specified starship class does not exists.");
+        // Checking if the desired class exists
+        const classCount = await db.starshipClass.count({ where: { id: req.body.starshipClassId } });
+
+        if (classCount == 0) {
+          throw new Error("The specified starship class does not exists.");
+        }
+
+        // Getting the Fuel capacity of the new starship class using the API
+        await fetch(`${appConfig.DOMAIN}/api/starship-class/${req.body.starshipClassId}/fuel-capacity`, { method: 'GET' })
+          .then(response => {
+            // If response is OK
+            if (response.status == 200) {
+              // Returns the response in JSON
+              return response.json()
+            } else {
+              throw new Error(`Error while trying to retrieve the Fuel capacity of the class with id=${req.body.starshipClassId}, the Starship class does not exists.`);
+            }
+          })
+          .then((jsonResponse) => {
+
+            const newClassFuelCapacity = jsonResponse[0].fuelCapacity;
+
+            // Set the value of the fuelLeft property to the fuel capacity of the new class 
+            req.body.fuelLeft = newClassFuelCapacity;
+
+          })
+
       }
 
-      // Getting the Fuel capacity of the new starship class using the API
-      await fetch(`${appConfig.DOMAIN}/api/starship-class/${req.body.starshipClassId}/fuel-capacity`, { method: 'GET' })
-        .then(response => {
-          // If response is OK
-          if (response.status == 200) {
-            // Returns the response in JSON
-            return response.json()
-          } else {
-            throw new Error(`Error while trying to retrieve the Fuel capacity of the class with id=${req.body.starshipClassId}, the Starship class does not exists.`);
-          }
-        })
-        .then((jsonResponse) => {
-
-          const newClassFuelCapacity = jsonResponse[0].fuelCapacity;
-
-          // Set the value of the fuelLeft property to the fuel capacity of the new class 
-          req.body.fuelLeft = newClassFuelCapacity;
-
-        })
-
+    } else {
+      // Sends error, if no starship was found with the provided id
+      res.status(404);
+      throw new Error(`The Starship with id=${id} does not exists.`);
     }
   }
 
