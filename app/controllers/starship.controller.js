@@ -185,21 +185,17 @@ exports.findAllOfClass = (req, res) => {
 // Update a single Starship by id (except "fuelLeft" property -> Use updateFuelLeftById() to change it)
 exports.updateById = async (req, res) => {
 
-  // If the "fuelLeft" property is in the request body
-  if (req.body.fuelLeft) {
-    // Sends an error
-    res.status(400).send({
-      message: "Cannot update the 'fuelLeft' using this route. Use /api/starship/:id/fuel-left to update it."
-    });
-    return;
-  }
+  // Properties accepted for this request
+  const validProperties = [
+    'name',
+    'starshipClassId'
+  ];
 
   // Getting starship id from the URL
   const id = req.params.id;
 
   // Getting data of the starship we try to update
   const starshipData = await Starship.findByPk(id);
-
 
   // Function used to check if we are trying to update the "Starship class ID" and check if the new desired class exists
   const starshipClassIdCheck = async () => {
@@ -237,35 +233,65 @@ exports.updateById = async (req, res) => {
     }
   }
 
+  // Function used to check if the "fuelLeft" property is in the request body
+  const fuelLeftCheck = async () => {
 
-  // Checking for the presence of the "starshipClassId" property in the request body
-  await starshipClassIdCheck()
-    .then(() => {
+    if (req.body.fuelLeft) {
 
-      // Then we update the starship
-      Starship.update(req.body, {
-        where: { id: id }
-      })
-        .then(updatedRows => { // updatedRows is the number of rows that have been updated.
-          if (updatedRows == 1) { // If updatedRows = 1. One row has been updated -> success
-            res.send({
-              message: "The Starship was updated successfully."
+      // Sends error, if the "fuelLeft" property is in the request body
+      res.status(400);
+      throw new Error("Cannot update the 'fuelLeft' using this route. Use /api/starship/:id/fuel-left to update it.");
+
+    }
+
+  }
+
+  // Checking if the "fuelLeft property is in the request body
+  await fuelLeftCheck()
+    .then(async () => {
+
+      // Checking the request validity
+      await requestValidityCheck(req, res, validProperties)
+        .then(async () => {
+
+          // Checking for the presence of the "starshipClassId" property in the request body
+          await starshipClassIdCheck()
+            .then(() => {
+
+              // Then we update the starship
+              Starship.update(req.body, {
+                where: { id: id }
+              })
+                .then(updatedRows => { // updatedRows is the number of rows that have been updated.
+                  if (updatedRows == 1) { // If updatedRows = 1. One row has been updated -> success
+                    res.send({
+                      message: "The Starship was updated successfully."
+                    });
+                  } else {
+                    res.send({
+                      message: `Cannot update the Starship with id=${id}. Maybe the Starship was not found or req.body is empty!`
+                    });
+                  }
+                })
+                .catch(err => {
+                  res.status(500).send({
+                    message: "Error updating the Starship with id=" + id
+                  });
+                });
+
+            })
+            .catch(err => {
+              res.status(500).send({
+                message: err.message
+              });
             });
-          } else {
-            res.send({
-              message: `Cannot update the Starship with id=${id}. Maybe the Starship was not found or req.body is empty!`
-            });
-          }
+
         })
-        .catch(err => {
-          res.status(500).send({
-            message: "Error updating the Starship with id=" + id
-          });
-        });
 
     })
     .catch(err => {
-      res.status(500).send({
+      // Catches any errors from the fuel left check or request validity function
+      res.send({
         message: err.message
       });
     });
