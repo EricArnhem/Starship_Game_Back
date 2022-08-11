@@ -301,15 +301,10 @@ exports.updateById = async (req, res) => {
 // Update the Fuel left of a Starship by id
 exports.updateFuelLeftById = async (req, res) => {
 
-  // Validating request
-  // If there's no "fuelLeft" property or if there's not just one property in the request body
-  if (!req.body.fuelLeft || Object.keys(req.body).length != 1) {
-    // Sends an error
-    res.status(400).send({
-      message: "Please provide the 'fuelLeft' property only."
-    });
-    return;
-  }
+  // Properties accepted for this request
+  const validProperties = [
+    'fuelLeft'
+  ];
 
   // Getting starship id from the URL
   const id = req.params.id;
@@ -317,57 +312,69 @@ exports.updateFuelLeftById = async (req, res) => {
   // Getting data of the starship we try to update
   const starshipData = await Starship.findByPk(id);
 
-  // Getting the current starship class id
-  let currentStarshipClassId = starshipData.starshipClassId;
+  // Checking the request validity
+  await requestValidityCheck(req, res, validProperties)
+    .then(async () => {
 
-  // Getting the Fuel capacity of the current starship class using the API
-  await fetch(`${appConfig.DOMAIN}/api/starship-class/${currentStarshipClassId}/fuel-capacity`, { method: 'GET' })
-    .then(response => {
-      // If response is OK
-      if (response.status == 200) {
-        // Returns the response in JSON
-        return response.json()
-      } else {
-        throw new Error(`Error while trying to retrieve the Fuel capacity of the class with id=${currentStarshipClassId}, the Starship class does not exists.`);
-      }
-    })
-    .then(jsonResponse => {
+      // Getting the current starship class id
+      let currentStarshipClassId = starshipData.starshipClassId;
 
-      // Saving the fuel capacity of the starship class
-      const starshipClassFuelCapacity = jsonResponse[0].fuelCapacity;
-
-      // If the value of the Fuel left is below 0 or above the maximum capacity
-      if (req.body.fuelLeft < 0 || req.body.fuelLeft > starshipClassFuelCapacity) {
-        throw new Error(`'Fuel left' value must be between 0 and ${starshipClassFuelCapacity}.`);
-      }
-
-    })
-    .then(() => {
-
-      // Then we update the starship
-      Starship.update({ fuelLeft: req.body.fuelLeft }, {
-        where: { id: id }
-      })
-        .then(updatedRows => { // updatedRows is the number of rows that have been updated.
-          if (updatedRows == 1) { // If updatedRows = 1. One row has been updated -> success
-            res.send({
-              message: "The Starship was updated successfully."
-            });
+      // Getting the Fuel capacity of the current starship class using the API
+      await fetch(`${appConfig.DOMAIN}/api/starship-class/${currentStarshipClassId}/fuel-capacity`, { method: 'GET' })
+        .then(response => {
+          // If response is OK
+          if (response.status == 200) {
+            // Returns the response in JSON
+            return response.json()
           } else {
-            res.send({
-              message: `Cannot update the Starship with id=${id}. Maybe the Starship was not found or req.body is empty!`
-            });
+            throw new Error(`Error while trying to retrieve the Fuel capacity of the class with id=${currentStarshipClassId}, the Starship class does not exists.`);
           }
+        })
+        .then(jsonResponse => {
+
+          // Saving the fuel capacity of the starship class
+          const starshipClassFuelCapacity = jsonResponse[0].fuelCapacity;
+
+          // If the value of the Fuel left is below 0 or above the maximum capacity
+          if (req.body.fuelLeft < 0 || req.body.fuelLeft > starshipClassFuelCapacity) {
+            throw new Error(`'Fuel left' value must be between 0 and ${starshipClassFuelCapacity}.`);
+          }
+
+        })
+        .then(() => {
+
+          // Then we update the starship
+          Starship.update({ fuelLeft: req.body.fuelLeft }, {
+            where: { id: id }
+          })
+            .then(updatedRows => { // updatedRows is the number of rows that have been updated.
+              if (updatedRows == 1) { // If updatedRows = 1. One row has been updated -> success
+                res.send({
+                  message: "The Starship was updated successfully."
+                });
+              } else {
+                res.send({
+                  message: `Cannot update the Starship with id=${id}. Maybe the Starship was not found or req.body is empty!`
+                });
+              }
+            })
+            .catch(err => {
+              res.status(500).send({
+                message: "Error updating the Starship with id=" + id
+              });
+            });
+
         })
         .catch(err => {
           res.status(500).send({
-            message: "Error updating the Starship with id=" + id
+            message: err.message
           });
         });
 
     })
     .catch(err => {
-      res.status(500).send({
+      // Catches any errors from the request validity function
+      res.send({
         message: err.message
       });
     });
