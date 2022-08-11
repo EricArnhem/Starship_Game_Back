@@ -210,6 +210,7 @@ exports.updateById = async (req, res) => {
         const classCount = await db.starshipClass.count({ where: { id: req.body.starshipClassId } });
 
         if (classCount == 0) {
+          res.status(404);
           throw new Error("The specified starship class does not exists.");
         }
 
@@ -221,6 +222,7 @@ exports.updateById = async (req, res) => {
               // Returns the response in JSON
               return response.json()
             } else {
+              res.status(500);
               throw new Error(`Error while trying to retrieve the Fuel capacity of the class with id=${req.body.starshipClassId}, the Starship class does not exists.`);
             }
           })
@@ -290,7 +292,7 @@ exports.updateById = async (req, res) => {
 
             })
             .catch(err => {
-              res.status(500).send({
+              res.send({
                 message: err.message
               });
             });
