@@ -5,62 +5,81 @@ const appConfig = require("../config/app.config.js");
 const db = require("../models");
 
 const Starship = db.starship;
-
 const Op = db.Sequelize.Op;
+
+const requestValidityCheck = require("./requestValidityCheck");
 
 // --- CRUD Functions ---
 // Create a new Starship
 exports.create = async (req, res) => {
 
-  // Validating request
-  if (!req.body.name || !req.body.starshipClassId) { // If there's no name or classId provided
-    // Sends an error
-    res.status(400).send({
-      message: "Content can not be empty!"
-    });
-    return;
-  }
+  // Properties accepted for this request
+  const validProperties = [
+    'name',
+    'starshipClassId'
+  ];
 
-  // Getting the Fuel capacity of the current starship class using the API to use it as a value for the Fuel left
-  await fetch(`${appConfig.DOMAIN}/api/starship-class/${req.body.starshipClassId}/fuel-capacity`, { method: 'GET' })
-    .then(response => {
-      // If response is OK
-      if (response.status == 200) {
-        // Returns the response in JSON
-        return response.json()
-      } else {
-        throw new Error(`Error while trying to retrieve the Fuel capacity of the class with id=${req.body.starshipClassId}, the Starship class does not exists.`);
-      }
-    })
-    .then(jsonResponse => {
+  // Checking the request validity
+  await requestValidityCheck(req, res, validProperties)
+    .then(async () => {
 
-      // Saving the fuel capacity of the starship class
-      const classFuelCapacity = jsonResponse[0].fuelCapacity;
+      // If a starship class id is provided
+      if (req.body.starshipClassId) {
 
-      // Creating a new Starship with the data provided
-      const starship = {
-        name: req.body.name,
-        fuelLeft: classFuelCapacity,
-        starshipClassId: req.body.starshipClassId
-      };
+        // Getting the Fuel capacity of the current starship class using the API to use it as a value for the Fuel left
+        await fetch(`${appConfig.DOMAIN}/api/starship-class/${req.body.starshipClassId}/fuel-capacity`, { method: 'GET' })
+          .then(response => {
+            // If response is OK
+            if (response.status == 200) {
+              // Returns the response in JSON
+              return response.json()
+            } else {
+              throw new Error(`Error while trying to retrieve the Fuel capacity of the class with id=${req.body.starshipClassId}, the Starship class does not exists.`);
+            }
+          })
+          .then(jsonResponse => {
 
-      // Saving the Starship in the database
-      Starship.create(starship)
-        .then(data => {
-          res.send(data);
-        })
-        .catch(err => {
-          res.status(500).send({
-            message:
-              err.message || "Some error occurred while creating the Starship."
+            // Saving the fuel capacity of the starship class
+            const classFuelCapacity = jsonResponse[0].fuelCapacity;
+
+            // Creating a new Starship with the data provided
+            const starship = {
+              name: req.body.name,
+              fuelLeft: classFuelCapacity,
+              starshipClassId: req.body.starshipClassId
+            };
+
+            // Saving the Starship in the database
+            Starship.create(starship)
+              .then(data => {
+                res.send(data);
+              })
+              .catch(err => {
+                res.status(500).send({
+                  message:
+                    err.message || "Some error occurred while creating the Starship."
+                });
+              });
+
+          })
+          .catch(err => {
+            res.status(500).send({
+              message:
+                err.message || "Some error occurred while getting the Fuel Capacity value from the Starship Class."
+            });
           });
-        });
+
+      } else {
+        // If no starship class id is provided
+        res.status(400);
+        throw new Error('starshipClassId must be provided.');
+      }
 
     })
     .catch(err => {
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while getting the Fuel Capacity value from the Starship Class."
+      // Catches any errors from the request validity function
+      res.send({
+        message: err.message
       });
     });
 
