@@ -35,7 +35,7 @@ exports.create = async (req, res) => {
         .catch(err => {
           res.status(500).send({
             message:
-              err.message || "Some error occurred while creating the Starship class."
+              err.message || "Error while creating the Starship class."
           });
         });
 
@@ -67,7 +67,7 @@ exports.findOneById = (req, res) => {
     })
     .catch(err => {
       res.status(500).send({
-        message: "Error retrieving a Starship class with id=" + id
+        message: "Error while retrieving the Starship class with id=" + id
       });
     });
 
@@ -88,13 +88,13 @@ exports.findOneByName = (req, res) => {
         res.send(data);
       } else {
         res.status(404).send({
-          message: `Cannot find Starship class with name=${name}.`
+          message: `Cannot find a Starship class with name=${name}.`
         });
       }
     })
     .catch(err => {
       res.status(500).send({
-        message: "Error retrieving Starship class with name=" + name
+        message: "Error while retrieving the Starship class with name=" + name
       });
     });
 
@@ -112,7 +112,7 @@ exports.findAll = (req, res) => {
     .catch(err => {
       res.status(500).send({
         message:
-          err.message || "Some error occurred while retrieving the Starship classes."
+          err.message || "Error while retrieving the Starship classes."
       });
     });
 
@@ -124,7 +124,7 @@ exports.getFuelCapacityById = (req, res) => {
   // Getting the class id from the URL
   const id = req.params.id;
 
-  // Find the starship with the provided id and select it's fuel capacity
+  // Find the starship class with the provided id and retrieves the fuel capacity
   StarshipClass.findAll({
     attributes: ['fuelCapacity'],
     where: { id: id }
@@ -142,7 +142,7 @@ exports.getFuelCapacityById = (req, res) => {
     .catch(err => {
       res.status(500).send({
         message:
-          err.message || "Some error occurred while retrieving the Starship class."
+          err.message || "Error while retrieving the Starship class."
       });
     });
 
@@ -220,7 +220,7 @@ exports.updateById = async (req, res) => {
           } else {
             // If no rows were updated
             res.status(404).send({
-              message: `Cannot update the Starship class with id=${id}. Maybe the Starship class does not exists.`
+              message: `Cannot update the Starship class with id=${id}. Maybe the Starship class may not exists.`
             });
 
           }

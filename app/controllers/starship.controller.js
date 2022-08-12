@@ -34,7 +34,7 @@ exports.create = async (req, res) => {
               // Returns the response in JSON
               return response.json()
             } else {
-              throw new Error(`Error while trying to retrieve the Fuel capacity of the class with id=${req.body.starshipClassId}, the Starship class does not exists.`);
+              throw new Error(`Error while retrieving the Fuel capacity of the Starship class with id=${req.body.starshipClassId}, the Starship class does not exists.`);
             }
           })
           .then(jsonResponse => {
@@ -57,7 +57,7 @@ exports.create = async (req, res) => {
               .catch(err => {
                 res.status(500).send({
                   message:
-                    err.message || "Some error occurred while creating the Starship."
+                    err.message || "Error while creating the Starship."
                 });
               });
 
@@ -65,7 +65,7 @@ exports.create = async (req, res) => {
           .catch(err => {
             res.status(500).send({
               message:
-                err.message || "Some error occurred while getting the Fuel Capacity value from the Starship Class."
+                err.message || "Error while getting the Fuel Capacity value from the Starship Class."
             });
           });
 
@@ -97,13 +97,13 @@ exports.findOneById = (req, res) => {
         res.send(data);
       } else {
         res.status(404).send({
-          message: `Cannot find Starship with id=${id}.`
+          message: `Cannot find a Starship with id=${id}.`
         });
       }
     })
     .catch(err => {
       res.status(500).send({
-        message: "Error retrieving Starship with id=" + id
+        message: "Error while retrieving the Starship with id=" + id
       });
     });
 
@@ -124,13 +124,13 @@ exports.findOneByName = (req, res) => {
         res.send(data);
       } else {
         res.status(404).send({
-          message: `Cannot find Starship with name=${name}.`
+          message: `Cannot find a Starship with name=${name}.`
         });
       }
     })
     .catch(err => {
       res.status(500).send({
-        message: "Error retrieving Starship with name=" + name
+        message: "Error while retrieving the Starship with name=" + name
       });
     });
 
@@ -148,7 +148,7 @@ exports.findAll = (req, res) => {
     .catch(err => {
       res.status(500).send({
         message:
-          err.message || "Some error occurred while retrieving the Starships."
+          err.message || "Error while retrieving the Starships."
       });
     });
 
@@ -169,14 +169,14 @@ exports.findAllOfClass = (req, res) => {
         res.send(data);
       } else {
         res.status(404).send({
-          message: `No Starships found for the class with id=${classId}.`
+          message: `No Starships found for the Starship class with id=${classId}.`
         });
       }
     })
     .catch(err => {
       res.status(500).send({
         message:
-          err.message || "Some error occurred while retrieving the Starships."
+          err.message || `Error while retrieving the Starships of the Starship class with id=${classId}.`
       });
     });
 
@@ -211,7 +211,7 @@ exports.updateById = async (req, res) => {
 
         if (classCount == 0) {
           res.status(404);
-          throw new Error("The specified starship class does not exists.");
+          throw new Error("The specified Starship class does not exists.");
         }
 
         // Getting the Fuel capacity of the new starship class using the API
@@ -223,7 +223,7 @@ exports.updateById = async (req, res) => {
               return response.json()
             } else {
               res.status(500);
-              throw new Error(`Error while trying to retrieve the Fuel capacity of the class with id=${req.body.starshipClassId}, the Starship class does not exists.`);
+              throw new Error(`Error while retrieving the Fuel capacity of the Starship class with id=${req.body.starshipClassId}, the Starship class does not exists.`);
             }
           })
           .then((jsonResponse) => {
@@ -280,13 +280,13 @@ exports.updateById = async (req, res) => {
                     });
                   } else {
                     res.send({
-                      message: `Cannot update the Starship with id=${id}. Maybe the Starship was not found or req.body is empty!`
+                      message: `Cannot update the Starship with id=${id}. Maybe the Starship was not found.`
                     });
                   }
                 })
                 .catch(err => {
                   res.status(500).send({
-                    message: "Error updating the Starship with id=" + id
+                    message: "Error while updating the Starship with id=" + id
                   });
                 });
 
@@ -338,7 +338,7 @@ exports.updateFuelLeftById = async (req, res) => {
             // Returns the response in JSON
             return response.json()
           } else {
-            throw new Error(`Error while trying to retrieve the Fuel capacity of the class with id=${currentStarshipClassId}, the Starship class does not exists.`);
+            throw new Error(`Error while retrieving the Fuel capacity of the Starship class with id=${currentStarshipClassId}, the Starship class may not exists.`);
           }
         })
         .then(jsonResponse => {
@@ -348,7 +348,7 @@ exports.updateFuelLeftById = async (req, res) => {
 
           // If the value of the Fuel left is below 0 or above the maximum capacity
           if (req.body.fuelLeft < 0 || req.body.fuelLeft > starshipClassFuelCapacity) {
-            throw new Error(`'Fuel left' value must be between 0 and ${starshipClassFuelCapacity}.`);
+            throw new Error(`The 'fuelLeft' value must be between 0 and ${starshipClassFuelCapacity}.`);
           }
 
         })
@@ -365,13 +365,13 @@ exports.updateFuelLeftById = async (req, res) => {
                 });
               } else {
                 res.send({
-                  message: `Cannot update the Starship with id=${id}. Maybe the Starship was not found or req.body is empty!`
+                  message: `Cannot update the Starship with id=${id}. The Starship may not exists.`
                 });
               }
             })
             .catch(err => {
               res.status(500).send({
-                message: "Error updating the Starship with id=" + id
+                message: "Error while updating the Starship with id=" + id
               });
             });
 
