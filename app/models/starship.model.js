@@ -5,6 +5,17 @@ module.exports = (sequelize, DataTypes) => {
       autoIncrement: true,
       primaryKey: true
     },
+    publicId: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true,
+      validate: {
+        is: /[A-Za-z0-9]{10}/g,
+        len: [10],
+        notNull: true,
+        notEmpty: true
+      }
+    },
     name: {
       type: DataTypes.STRING,
       allowNull: false,
