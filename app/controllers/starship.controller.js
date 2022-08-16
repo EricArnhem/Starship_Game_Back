@@ -112,25 +112,28 @@ exports.create = async (req, res) => {
 
 };
 
-// Find a single Starship by id
-exports.findOneById = (req, res) => {
+// Find a single Starship by public id
+exports.findOneByPublicId = (req, res) => {
 
-  // Getting starship id from the URL
-  const id = req.params.id;
+  // Getting starship public id from the URL
+  const publicId = req.params.publicId;
 
-  Starship.findByPk(id, { attributes: { exclude: ['createdAt', 'updatedAt'] } })
+  Starship.findOne({
+    where: { publicId: publicId },
+    attributes: { exclude: ['id', 'createdAt', 'updatedAt'] }
+  })
     .then(data => {
       if (data) {
         res.send(data);
       } else {
         res.status(404).send({
-          message: `Cannot find a Starship with id=${id}.`
+          message: `Cannot find a Starship with publicId=${publicId}.`
         });
       }
     })
     .catch(err => {
       res.status(500).send({
-        message: "Error while retrieving the Starship with id=" + id
+        message: `Error while retrieving the Starship with publicId=${publicId}.`
       });
     });
 
