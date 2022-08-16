@@ -191,7 +191,7 @@ exports.findAllOfClass = (req, res) => {
   const classId = req.params.id;
 
   Starship.findAll({
-    attributes: { exclude: ['createdAt', 'updatedAt'] },
+    attributes: { exclude: ['id', 'createdAt', 'updatedAt'] },
     where: { starshipClassId: classId }
   })
     .then(data => {
