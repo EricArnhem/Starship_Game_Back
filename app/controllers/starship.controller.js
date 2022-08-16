@@ -212,8 +212,8 @@ exports.findAllOfClass = (req, res) => {
 
 };
 
-// Update a single Starship by id (except "fuelLeft" property -> Use updateFuelLeftById() to change it)
-exports.updateById = async (req, res) => {
+// Update a single Starship by public id (except "fuelLeft")
+exports.updateByPublicId = async (req, res) => {
 
   // Properties accepted for this request
   const validProperties = [
@@ -221,16 +221,16 @@ exports.updateById = async (req, res) => {
     'starshipClassId'
   ];
 
-  // Getting starship id from the URL
-  const id = req.params.id;
+  // Getting starship public id from the URL
+  const publicId = req.params.publicId;
 
   // Getting data of the starship we try to update
-  const starshipData = await Starship.findByPk(id);
+  const starshipData = await Starship.findOne({ where: { publicId: publicId } });
 
   // Function used to check if we are trying to update the "Starship class ID" and check if the new desired class exists
   const starshipClassIdCheck = async () => {
 
-    // If the starship with the provided id exists
+    // If the starship with the provided public id exists
     if (starshipData) {
 
       // If the "starshipClassId" property is detected in the request body AND if it is not the same currently used class
@@ -268,9 +268,9 @@ exports.updateById = async (req, res) => {
       }
 
     } else {
-      // Sends error, if no starship was found with the provided id
+      // Sends error, if no starship was found with the provided public id
       res.status(404);
-      throw new Error(`The Starship with id=${id} does not exists.`);
+      throw new Error(`The Starship with publicId=${publicId} does not exists.`);
     }
   }
 
@@ -301,7 +301,7 @@ exports.updateById = async (req, res) => {
 
               // Then we update the starship
               Starship.update(req.body, {
-                where: { id: id }
+                where: { publicId: publicId }
               })
                 .then(updatedRows => { // updatedRows is the number of rows that have been updated.
                   if (updatedRows == 1) { // If updatedRows = 1. One row has been updated -> success
@@ -310,13 +310,13 @@ exports.updateById = async (req, res) => {
                     });
                   } else {
                     res.send({
-                      message: `Cannot update the Starship with id=${id}. Maybe the Starship was not found.`
+                      message: `Cannot update the Starship with publicId=${publicId}. Maybe the Starship was not found.`
                     });
                   }
                 })
                 .catch(err => {
                   res.status(500).send({
-                    message: "Error while updating the Starship with id=" + id
+                    message: `Error while updating the Starship with publicId=${publicId}`
                   });
                 });
 
