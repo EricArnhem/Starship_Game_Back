@@ -170,7 +170,7 @@ exports.findOneByName = (req, res) => {
 exports.findAll = (req, res) => {
 
   Starship.findAll({
-    attributes: { exclude: ['createdAt', 'updatedAt'] }
+    attributes: { exclude: ['id', 'createdAt', 'updatedAt'] }
   })
     .then(data => {
       res.send(data);
