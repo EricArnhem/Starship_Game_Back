@@ -1,5 +1,10 @@
 const fetch = require('node-fetch');
 
+// Nano ID to generate the publicId
+const { customAlphabet } = require('nanoid');
+const alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+const nanoid = customAlphabet(alphabet, 10);
+
 const appConfig = require("../config/app.config.js");
 
 const db = require("../models");
@@ -37,30 +42,52 @@ exports.create = async (req, res) => {
               throw new Error(`Error while retrieving the Fuel capacity of the Starship class with id=${req.body.starshipClassId}, the Starship class does not exists.`);
             }
           })
-          .then(jsonResponse => {
+          .then(async (jsonResponse) => {
 
             // Saving the fuel capacity of the starship class
             const classFuelCapacity = jsonResponse[0].fuelCapacity;
 
-            // Creating a new Starship with the data provided
-            const starship = {
-              name: req.body.name,
-              fuelLeft: classFuelCapacity,
-              starshipClassId: req.body.starshipClassId
-            };
+            // Generating a 10 characters long unique ID
+            let publicId = nanoid();
 
-            // Saving the Starship in the database
-            Starship.create(starship)
-              .then(data => {
-                res.send(data);
+            // Check if the publicId already exists for another starship and regenerate one if needed
+            const checkPublicId = async () => {
+
+              let result = Starship.findAll({ where: { publicId: publicId } })
+
+              // If there's a match for the id, keeps regenerating another one until it's unique
+              while (result.length > 0) {
+                publicId = nanoid();
+                result = Starship.findAll({ where: { publicId: publicId } })
+              }
+
+            }
+
+            // Checking id availability
+            await checkPublicId()
+              .then(() => {
+
+                // Creating a new Starship with the data provided
+                const starship = {
+                  publicId: publicId,
+                  name: req.body.name,
+                  fuelLeft: classFuelCapacity,
+                  starshipClassId: req.body.starshipClassId
+                };
+
+                // Saving the Starship in the database
+                Starship.create(starship)
+                  .then(data => {
+                    res.send(data);
+                  })
+                  .catch(err => {
+                    res.status(500).send({
+                      message:
+                        err.message || "Error while creating the Starship."
+                    });
+                  });
+
               })
-              .catch(err => {
-                res.status(500).send({
-                  message:
-                    err.message || "Error while creating the Starship."
-                });
-              });
-
           })
           .catch(err => {
             res.status(500).send({
