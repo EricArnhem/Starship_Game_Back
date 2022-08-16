@@ -339,19 +339,19 @@ exports.updateByPublicId = async (req, res) => {
 
 };
 
-// Update the Fuel left of a Starship by id
-exports.updateFuelLeftById = async (req, res) => {
+// Update the Fuel left of a Starship by public id
+exports.updateFuelLeftByPublicId = async (req, res) => {
 
   // Properties accepted for this request
   const validProperties = [
     'fuelLeft'
   ];
 
-  // Getting starship id from the URL
-  const id = req.params.id;
+  // Getting starship public id from the URL
+  const publicId = req.params.publicId;
 
   // Getting data of the starship we try to update
-  const starshipData = await Starship.findByPk(id);
+  const starshipData = await Starship.findOne({ where: { publicId: publicId } });
 
   // Checking the request validity
   await requestValidityCheck(req, res, validProperties)
@@ -386,7 +386,7 @@ exports.updateFuelLeftById = async (req, res) => {
 
           // Then we update the starship
           Starship.update({ fuelLeft: req.body.fuelLeft }, {
-            where: { id: id }
+            where: { publicId: publicId }
           })
             .then(updatedRows => { // updatedRows is the number of rows that have been updated.
               if (updatedRows == 1) { // If updatedRows = 1. One row has been updated -> success
@@ -395,13 +395,13 @@ exports.updateFuelLeftById = async (req, res) => {
                 });
               } else {
                 res.send({
-                  message: `Cannot update the Starship with id=${id}. The Starship may not exists.`
+                  message: `Cannot update the Starship with publicId=${publicId}. The Starship may not exists.`
                 });
               }
             })
             .catch(err => {
               res.status(500).send({
-                message: "Error while updating the Starship with id=" + id
+                message: `Error while updating the Starship with publicId=${publicId}.`
               });
             });
 
