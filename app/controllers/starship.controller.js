@@ -146,7 +146,7 @@ exports.findOneByName = (req, res) => {
   const name = req.params.name;
 
   Starship.findOne({
-    attributes: { exclude: ['createdAt', 'updatedAt'] },
+    attributes: { exclude: ['id', 'createdAt', 'updatedAt'] },
     where: { name: name }
   })
     .then(data => {
