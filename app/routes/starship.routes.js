@@ -24,8 +24,8 @@ module.exports = app => {
   // Update the Fuel left of a Starship by public id
   router.put("/:publicId/fuel-left", starship.updateFuelLeftByPublicId);
 
-  // Delete a single Starship by id
-  router.delete("/:id", starship.deleteById);
+  // Delete a single Starship by public id
+  router.delete("/:publicId", starship.deleteByPublicId);
 
   app.use('/api/starship', router);
 

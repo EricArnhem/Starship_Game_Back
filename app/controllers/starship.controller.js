@@ -422,29 +422,29 @@ exports.updateFuelLeftByPublicId = async (req, res) => {
 
 };
 
-// Delete a single Starship by id
-exports.deleteById = (req, res) => {
+// Delete a single Starship by public id
+exports.deleteByPublicId = (req, res) => {
 
   // Getting starship id from the URL
-  const id = req.params.id;
+  const publicId = req.params.publicId;
 
   Starship.destroy({
-    where: { id: id }
+    where: { publicId: publicId }
   })
     .then(updatedRows => { // updatedRows is the number of rows that have been updated.
       if (updatedRows == 1) { // If updatedRows = 1. One row has been updated -> success
         res.send({
-          message: `The Starship with id=${id} was deleted successfully!`
+          message: `The Starship with publicId=${publicId} was deleted successfully!`
         });
       } else {
         res.send({
-          message: `Cannot delete Starship with id=${id}. The Starship may not exist.`
+          message: `Cannot delete Starship with publicId=${publicId}. The Starship may not exist.`
         });
       }
     })
     .catch(err => {
       res.status(500).send({
-        message: "Could not delete the Starship with id=" + id
+        message: `Could not delete the Starship with publicId=${publicId}.`
       });
     });
 
