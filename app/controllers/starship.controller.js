@@ -77,8 +77,10 @@ exports.create = async (req, res) => {
 
                 // Saving the Starship in the database
                 Starship.create(starship)
-                  .then(data => {
-                    res.send(data);
+                  .then(starshipData => {
+                    res.send({
+                      message: `The Starship '${starshipData.name}' has been successfully created.`
+                    });
                   })
                   .catch(err => {
                     res.status(500).send({

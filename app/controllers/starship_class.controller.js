@@ -29,8 +29,10 @@ exports.create = async (req, res) => {
 
       // Saving the Starship Class in the database
       StarshipClass.create(starship_class)
-        .then(data => {
-          res.send(data);
+        .then(starshipClassData => {
+          res.send({
+            message: `The Starship class '${starshipClassData.name}' has been successfully created.`
+          });
         })
         .catch(err => {
           res.status(500).send({
