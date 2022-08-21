@@ -9,7 +9,13 @@ const cors = require("cors");
 const app = express();
 
 var corsOptions = {
-  origin: "http://localhost:3001"
+  origin: function (origin, callback) { // Dynamic origin
+    if (process.env.CORS_ALLOWED_ORIGINS.indexOf(origin) !== -1 || !origin) {
+      callback(null, true)
+    } else {
+      callback(new Error('Origin not allowed by CORS.'))
+    }
+  }
 };
 
 // Make the app use cors with the options provided
