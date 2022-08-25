@@ -311,7 +311,7 @@ exports.updateByPublicId = async (req, res) => {
                       message: "The Starship was updated successfully."
                     });
                   } else {
-                    res.send({
+                    res.status(500).send({
                       message: `Cannot update the Starship with publicId=${publicId}. Maybe the Starship was not found.`
                     });
                   }
