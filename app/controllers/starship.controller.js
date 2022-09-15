@@ -439,7 +439,7 @@ exports.deleteByPublicId = (req, res) => {
           message: `The Starship with publicId=${publicId} was deleted successfully!`
         });
       } else {
-        res.send({
+        res.status(404).send({
           message: `Cannot delete Starship with publicId=${publicId}. The Starship may not exist.`
         });
       }
