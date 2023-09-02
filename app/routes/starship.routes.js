@@ -12,6 +12,9 @@ module.exports = app => {
   // Find a single Starship by name
   router.get("/name/:name", starship.findOneByName);
 
+  // Check the availability of a Starship name
+  router.get("/checkname/:name", starship.checkNameAvailability);
+
   // Find all Starships
   router.get("/", starship.findAll);
 

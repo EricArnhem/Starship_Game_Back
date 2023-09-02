@@ -168,6 +168,34 @@ exports.findOneByName = (req, res) => {
 
 };
 
+// Check the availability of a Starship name
+exports.checkNameAvailability = (req, res) => {
+
+  // Getting starship name to check from the URL
+  const name = req.params.name;
+
+  Starship.findOne({
+    attributes: { exclude: ['id', 'createdAt', 'updatedAt'] },
+    where: { name: name }
+  })
+    .then(data => {
+      // If we get data from a Starship
+      if (data) {
+        // Name is not available
+        return res.json({ available: false });
+      } else {
+        // Name is available
+        return res.json({ available: true });
+      }
+    })
+    .catch(err => {
+      return res.status(500).send({
+        message: "Error while checking for the Starship name"
+      });
+    });
+
+};
+
 // Find all Starships
 exports.findAll = (req, res) => {
 
