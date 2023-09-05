@@ -12,6 +12,7 @@ exports.create = async (req, res) => {
     'name',
     'speed',
     'fuelCapacity',
+    'hullPoints',
     'color'
   ];
 
@@ -24,6 +25,7 @@ exports.create = async (req, res) => {
         name: req.body.name,
         speed: req.body.speed,
         fuelCapacity: req.body.fuelCapacity,
+        hullPoints: req.body.hullPoints,
         color: req.body.color
       };
 

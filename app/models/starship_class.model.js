@@ -33,6 +33,15 @@ module.exports = (sequelize, DataTypes) => {
         notEmpty: true
       }
     },
+    hullPoints: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      validate: {
+        isInt: true,
+        notNull: true,
+        notEmpty: true
+      }
+    },
     color: {
       type: DataTypes.STRING,
       allowNull: false,
