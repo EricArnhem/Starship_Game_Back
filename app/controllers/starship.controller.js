@@ -276,8 +276,8 @@ exports.updateByPublicId = async (req, res) => {
           throw new Error("The specified Starship class does not exists.");
         }
 
-        // Getting the Fuel capacity of the new starship class using the API
-        await fetch(`${appConfig.DOMAIN}/api/starship-class/${req.body.starshipClassId}/fuel-capacity`, { method: 'GET' })
+        // Getting the data of the new starship class from the API
+        await fetch(`${appConfig.DOMAIN}/api/starship-class/${req.body.starshipClassId}`, { method: 'GET' })
           .then(response => {
             // If response is OK
             if (response.status == 200) {
@@ -285,15 +285,18 @@ exports.updateByPublicId = async (req, res) => {
               return response.json()
             } else {
               res.status(500);
-              throw new Error(`Error while retrieving the Fuel capacity of the Starship class with id=${req.body.starshipClassId}, the Starship class does not exists.`);
+              throw new Error(`Error while retrieving data for the Starship class with id=${req.body.starshipClassId}, the Starship class does not exists.`);
             }
           })
           .then((jsonResponse) => {
 
-            const newClassFuelCapacity = jsonResponse[0].fuelCapacity;
+            const newClassFuelCapacity = jsonResponse.fuelCapacity;
+            const newClassHullPoints = jsonResponse.hullPoints;
 
             // Set the value of the fuelLeft property to the fuel capacity of the new class 
             req.body.fuelLeft = newClassFuelCapacity;
+            // Set the value of the hullPoints property to the hull points stat of the new class
+            req.body.hullPoints = newClassHullPoints;
 
           })
 
@@ -319,51 +322,73 @@ exports.updateByPublicId = async (req, res) => {
 
   }
 
+  // Function used to check if the "hullPoints" property is in the request body
+  const hullPointsCheck = async () => {
+
+    if (req.body.hullPoints) {
+
+      // Sends error, if the "hullPoints" property is in the request body
+      res.status(400);
+      throw new Error("Cannot update the 'hullPoints' using this route. Use /api/starship/:id/hull-points to update it.");
+
+    }
+
+  }
+
   // Checking if the "fuelLeft property is in the request body
   await fuelLeftCheck()
     .then(async () => {
 
-      // Checking the request validity
-      await requestValidityCheck(req, res, validProperties)
+      await hullPointsCheck()
         .then(async () => {
 
-          // Checking for the presence of the "starshipClassId" property in the request body
-          await starshipClassIdCheck()
-            .then(() => {
+          // Checking the request validity
+          await requestValidityCheck(req, res, validProperties)
+            .then(async () => {
 
-              // Then we update the starship
-              Starship.update(req.body, {
-                where: { publicId: publicId }
-              })
-                .then(updatedRows => { // updatedRows is the number of rows that have been updated.
-                  if (updatedRows == 1) { // If updatedRows = 1. One row has been updated -> success
-                    res.send({
-                      message: "The Starship was updated successfully."
+              // Checking for the presence of the "starshipClassId" property in the request body
+              await starshipClassIdCheck()
+                .then(() => {
+
+                  // Then we update the starship
+                  Starship.update(req.body, {
+                    where: { publicId: publicId }
+                  })
+                    .then(updatedRows => { // updatedRows is the number of rows that have been updated.
+                      if (updatedRows == 1) { // If updatedRows = 1. One row has been updated -> success
+                        res.send({
+                          message: "The Starship was updated successfully."
+                        });
+                      } else {
+                        res.status(500).send({
+                          message: `Cannot update the Starship with publicId=${publicId}. Maybe the Starship was not found.`
+                        });
+                      }
+                    })
+                    .catch(err => {
+                      res.status(500).send({
+                        message: `Error while updating the Starship with publicId=${publicId}`
+                      });
                     });
-                  } else {
-                    res.status(500).send({
-                      message: `Cannot update the Starship with publicId=${publicId}. Maybe the Starship was not found.`
-                    });
-                  }
+
                 })
                 .catch(err => {
-                  res.status(500).send({
-                    message: `Error while updating the Starship with publicId=${publicId}`
+                  res.send({
+                    message: err.message
                   });
                 });
 
             })
-            .catch(err => {
-              res.send({
-                message: err.message
-              });
-            });
-
         })
-
+        .catch(err => {
+          // Catches error from the hull points check or request validity function
+          res.send({
+            message: err.message
+          });
+        });
     })
     .catch(err => {
-      // Catches any errors from the fuel left check or request validity function
+      // Catches any errors from the fuel left check
       res.send({
         message: err.message
       });
