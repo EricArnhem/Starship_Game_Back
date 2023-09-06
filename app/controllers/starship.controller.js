@@ -417,21 +417,21 @@ exports.updateFuelLeftByPublicId = async (req, res) => {
       // Getting the current starship class id
       let currentStarshipClassId = starshipData.starshipClassId;
 
-      // Getting the Fuel capacity of the current starship class using the API
-      await fetch(`${appConfig.DOMAIN}/api/starship-class/${currentStarshipClassId}/fuel-capacity`, { method: 'GET' })
+      // Getting the data of the current starship class from the API
+      await fetch(`${appConfig.DOMAIN}/api/starship-class/${currentStarshipClassId}`, { method: 'GET' })
         .then(response => {
           // If response is OK
           if (response.status == 200) {
             // Returns the response in JSON
             return response.json()
           } else {
-            throw new Error(`Error while retrieving the Fuel capacity of the Starship class with id=${currentStarshipClassId}, the Starship class may not exists.`);
+            throw new Error(`Error while retrieving data of the Starship class with id=${currentStarshipClassId}, the Starship class may not exists.`);
           }
         })
         .then(jsonResponse => {
 
           // Saving the fuel capacity of the starship class
-          const starshipClassFuelCapacity = jsonResponse[0].fuelCapacity;
+          const starshipClassFuelCapacity = jsonResponse.fuelCapacity;
 
           // If the value of the Fuel left is below 0 or above the maximum capacity
           if (req.body.fuelLeft < 0 || req.body.fuelLeft > starshipClassFuelCapacity) {
