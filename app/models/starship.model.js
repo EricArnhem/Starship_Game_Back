@@ -36,6 +36,25 @@ module.exports = (sequelize, DataTypes) => {
         notEmpty: true
       }
     },
+    hullPoints: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      validate: {
+        isInt: true,
+        notNull: true,
+        notEmpty: true
+      }
+    },
+    credits: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 5000,
+      validate: {
+        isInt: true,
+        notNull: true,
+        notEmpty: true
+      }
+    },
     starshipClassId: {
       type: DataTypes.INTEGER,
       references: {
