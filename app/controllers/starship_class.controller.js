@@ -133,6 +133,7 @@ exports.updateById = async (req, res) => {
     'name',
     'speed',
     'fuelCapacity',
+    'hullPoints',
     'color'
   ];
 
@@ -153,11 +154,16 @@ exports.updateById = async (req, res) => {
 
           if (updatedRows == 1) { // If updatedRows = 1. One row has been updated -> success
 
-            if (req.body.fuelCapacity) {
-              // If we updated the fuelCapacity
+            // If we are trying to update the fuelCapacity or the hullPoints
+            if (req.body.fuelCapacity || req.body.hullPoints) {
+              let updateData = {};
 
-              // We need to update the fuel left of all the starships of the updated class to the new fuel capacity
-              await db.starship.update({ fuelLeft: req.body.fuelCapacity },
+              // If fuelCapacity and/or hullPoints are in the req body we add it to the updateData object
+              req.body.fuelCapacity ? updateData.fuelLeft = req.body.fuelCapacity : '';
+              req.body.hullPoints ? updateData.hullPoints = req.body.hullPoints : '';
+
+              // Update the fuel left and/or the hull points of all the starships of the updated class to the default stat values
+              await db.starship.update(updateData,
                 {
                   where: { starshipClassId: id },
                   transaction: t
@@ -172,7 +178,7 @@ exports.updateById = async (req, res) => {
 
                 })
                 .catch(async (err) => {
-                  // If error during the starships fuel left update
+                  // If error during the starships fuel left / hull points update
                   // Rollback the update made to the starship class
                   await t.rollback();
                   // Sends the error message
@@ -182,7 +188,7 @@ exports.updateById = async (req, res) => {
                 });
 
             } else {
-              // If we did not update the fuel capacity of the starship class
+              // If we are not trying to update the fuelCapacity or the hullPoints of the starship class
               // Commit the transaction (Apply changes)
               await t.commit();
               res.send({
