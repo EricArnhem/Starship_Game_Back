@@ -30,6 +30,9 @@ module.exports = app => {
   // Update the Hull points of a Starship by public id
   router.put("/:publicId/hull-points", starship.updateHullPointsByPublicId);
 
+  // Update the credits of a Starship by public id
+  router.put("/:publicId/credits", starship.updateCreditsByPublicId);
+
   // Delete a single Starship by public id
   router.delete("/:publicId", starship.deleteByPublicId);
 

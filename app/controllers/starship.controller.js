@@ -562,6 +562,56 @@ exports.updateHullPointsByPublicId = async (req, res) => {
 
 };
 
+// Update the Credits of a Starship by public id
+exports.updateCreditsByPublicId = async (req, res) => {
+
+  // Properties accepted for this request
+  const validProperties = [
+    'credits'
+  ];
+
+  // Getting starship public id from the URL
+  const publicId = req.params.publicId;
+
+  // Checking the request validity
+  await requestValidityCheck(req, res, validProperties)
+    .then(async () => {
+
+      // If the value of the credits is below 0
+      if (req.body.credits < 0) {
+        throw new Error(`The 'credits' value must be positive`);
+      }
+
+      // Then we update the starship
+      Starship.update({ credits: req.body.credits }, {
+        where: { publicId: publicId }
+      })
+        .then(updatedRows => { // updatedRows is the number of rows that have been updated.
+          if (updatedRows == 1) { // If updatedRows = 1. One row has been updated -> success
+            res.send({
+              message: "The Starship was updated successfully."
+            });
+          } else {
+            res.send({
+              message: `Cannot update the Starship with publicId=${publicId}. The Starship may not exists.`
+            });
+          }
+        })
+        .catch(err => {
+          res.status(500).send({
+            message: `Error while updating the Starship with publicId=${publicId}.`
+          });
+        });
+
+    })
+    .catch(err => {
+      // Catches any errors from the request validity function
+      res.status(500).send({
+        message: err.message
+      });
+    });
+}
+
 // Delete a single Starship by public id
 exports.deleteByPublicId = (req, res) => {
 
