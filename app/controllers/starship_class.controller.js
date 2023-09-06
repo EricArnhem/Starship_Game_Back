@@ -122,36 +122,6 @@ exports.findAll = (req, res) => {
 
 };
 
-// Get the fuel capacity by providing the class id
-exports.getFuelCapacityById = (req, res) => {
-
-  // Getting the class id from the URL
-  const id = req.params.id;
-
-  // Find the starship class with the provided id and retrieves the fuel capacity
-  StarshipClass.findAll({
-    attributes: ['fuelCapacity'],
-    where: { id: id }
-  })
-    .then(data => {
-      // If it returned some data
-      if (data.length > 0) {
-        res.send(data);
-      } else {
-        res.status(404).send({
-          message: `No Starship class found for the id=${id}.`
-        });
-      }
-    })
-    .catch(err => {
-      res.status(500).send({
-        message:
-          err.message || "Error while retrieving the Starship class."
-      });
-    });
-
-};
-
 // Update a single Starship Class by id
 exports.updateById = async (req, res) => {
 

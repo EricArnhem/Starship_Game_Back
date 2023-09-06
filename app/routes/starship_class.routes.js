@@ -12,9 +12,6 @@ module.exports = app => {
   // Find a single Starship class by name
   router.get("/name/:name", starship_class.findOneByName);
 
-  // Find the fuel capacity of a Starship class by id
-  router.get("/:id/fuel-capacity", starship_class.getFuelCapacityById);
-
   // Find all Starship classes
   router.get("/", starship_class.findAll);
 
