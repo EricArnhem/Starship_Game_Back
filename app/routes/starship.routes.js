@@ -19,7 +19,7 @@ module.exports = app => {
   router.get("/", starship.findAll);
 
   // Find all Starships by class
-  router.get("/class/:publicId", starship.findAllOfClass);
+  router.get("/class/:classId", starship.findAllOfClass);
 
   // Update a single Starship by public id (except "fuelLeft")
   router.put("/:publicId", starship.updateByPublicId);

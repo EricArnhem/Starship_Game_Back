@@ -220,7 +220,7 @@ exports.findAll = (req, res) => {
 exports.findAllOfClass = (req, res) => {
 
   // Getting the starship class id from the URL
-  const classId = req.params.id;
+  const classId = req.params.classId;
 
   Starship.findAll({
     attributes: { exclude: ['id', 'createdAt', 'updatedAt'] },
