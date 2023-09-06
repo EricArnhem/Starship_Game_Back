@@ -479,6 +479,89 @@ exports.updateFuelLeftByPublicId = async (req, res) => {
 
 };
 
+// Update the Hull points of a Starship by public id
+exports.updateHullPointsByPublicId = async (req, res) => {
+
+  // Properties accepted for this request
+  const validProperties = [
+    'hullPoints'
+  ];
+
+  // Getting starship public id from the URL
+  const publicId = req.params.publicId;
+
+  // Getting data of the starship we try to update
+  const starshipData = await Starship.findOne({ where: { publicId: publicId } });
+
+  // Checking the request validity
+  await requestValidityCheck(req, res, validProperties)
+    .then(async () => {
+
+      // Getting the current starship class id
+      let currentStarshipClassId = starshipData.starshipClassId;
+
+      // Getting the data of the current starship class from the API
+      await fetch(`${appConfig.DOMAIN}/api/starship-class/${currentStarshipClassId}`, { method: 'GET' })
+        .then(response => {
+          // If response is OK
+          if (response.status == 200) {
+            // Returns the response in JSON
+            return response.json()
+          } else {
+            throw new Error(`Error while retrieving data of the Starship class with id=${currentStarshipClassId}, the Starship class may not exists.`);
+          }
+        })
+        .then(jsonResponse => {
+
+          // Saving the fuel capacity of the starship class
+          const starshipClassHullPoints = jsonResponse.hullPoints;
+
+          // If the value of the hull points is below 0 or above the maximum capacity
+          if (req.body.hullPoints < 0 || req.body.hullPoints > starshipClassHullPoints) {
+            throw new Error(`The 'hullPoints' value must be between 0 and ${starshipClassHullPoints}.`);
+          }
+
+        })
+        .then(() => {
+
+          // Then we update the starship
+          Starship.update({ hullPoints: req.body.hullPoints }, {
+            where: { publicId: publicId }
+          })
+            .then(updatedRows => { // updatedRows is the number of rows that have been updated.
+              if (updatedRows == 1) { // If updatedRows = 1. One row has been updated -> success
+                res.send({
+                  message: "The Starship was updated successfully."
+                });
+              } else {
+                res.send({
+                  message: `Cannot update the Starship with publicId=${publicId}. The Starship may not exists.`
+                });
+              }
+            })
+            .catch(err => {
+              res.status(500).send({
+                message: `Error while updating the Starship with publicId=${publicId}.`
+              });
+            });
+
+        })
+        .catch(err => {
+          res.status(500).send({
+            message: err.message
+          });
+        });
+
+    })
+    .catch(err => {
+      // Catches any errors from the request validity function
+      res.send({
+        message: err.message
+      });
+    });
+
+};
+
 // Delete a single Starship by public id
 exports.deleteByPublicId = (req, res) => {
 
