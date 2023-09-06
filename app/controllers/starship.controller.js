@@ -31,21 +31,22 @@ exports.create = async (req, res) => {
       // If a starship class id is provided
       if (req.body.starshipClassId) {
 
-        // Getting the Fuel capacity of the current starship class using the API to use it as a value for the Fuel left
-        await fetch(`${appConfig.DOMAIN}/api/starship-class/${req.body.starshipClassId}/fuel-capacity`, { method: 'GET' })
+        // Getting reference data of the starship class from the API
+        await fetch(`${appConfig.DOMAIN}/api/starship-class/${req.body.starshipClassId}`, { method: 'GET' })
           .then(response => {
             // If response is OK
             if (response.status == 200) {
               // Returns the response in JSON
               return response.json()
             } else {
-              throw new Error(`Error while retrieving the Fuel capacity of the Starship class with id=${req.body.starshipClassId}, the Starship class does not exists.`);
+              throw new Error(`Error while retrieving data for the Starship class with id=${req.body.starshipClassId}, the Starship class does not exists.`);
             }
           })
           .then(async (jsonResponse) => {
 
-            // Saving the fuel capacity of the starship class
-            const classFuelCapacity = jsonResponse[0].fuelCapacity;
+            // Saving the fuel capacity and hull points of the starship class
+            const classFuelCapacity = jsonResponse.fuelCapacity;
+            const classHullPoints = jsonResponse.hullPoints;
 
             // Generating a 10 characters long unique ID
             let publicId = nanoid();
@@ -72,6 +73,7 @@ exports.create = async (req, res) => {
                   publicId: publicId,
                   name: req.body.name,
                   fuelLeft: classFuelCapacity,
+                  hullPoints: classHullPoints,
                   starshipClassId: req.body.starshipClassId
                 };
 
@@ -94,7 +96,7 @@ exports.create = async (req, res) => {
           .catch(err => {
             res.status(500).send({
               message:
-                err.message || "Error while getting the Fuel Capacity value from the Starship Class."
+                err.message || "Error while getting Starship Class data."
             });
           });
 
